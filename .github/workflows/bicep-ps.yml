@@ -1,0 +1,66 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Bicep Build (PowerShell)
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "bicep-build"
+  bicep-build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout code 
+        uses: actions/checkout@v2
+
+      # Install the latest release of the bicep CLI
+      - name: Install bicep CLI
+        run: |
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+          chmod +x ./bicep
+          sudo mv ./bicep /usr/local/bin/bicep
+          bicep --help
+
+      # Transpile bicep file into ARM template using a multi-line script (denoted by |)
+      - name: Build ARM Template from bicep file
+        run: |
+          bicep build ./main.bicep
+    
+      # Log into to Azure
+      - name: Login via Az module
+        uses: azure/login@v1
+        with:
+          creds: ${{secrets.AZURE_CREDENTIALS}}
+          enable-AzPSSession: true 
+
+      - name: Run Azure PowerShell script
+        uses: azure/powershell@v1
+        with:
+          inlineScript: |
+            Get-AzLocation
+          azPSVersion: '3.1.0'
+
+      # - name: Azure PowerShell Action
+      #   uses: Azure/powershell@v1
+      #   with:
+      #     # Specify the Az PowerShell script here.
+      #     inlineScript: 
+      #     # Azure PS version to be used to execute the script, example: 1.8.0, 2.8.0, 3.4.0. To use the latest version, specify "latest".
+      #     azPSVersion: 
+      #     # Select the value of the ErrorActionPreference variable for executing the script. Options: stop, continue, silentlyContinue. Default is Stop.
+      #     errorActionPreference: # optional, default is Stop
+      #     # If this is true, this task will fail if any errors are written to the error pipeline, or if any data is written to the Standard Error stream.
+      #     failOnStandardError: # optional, default is false
