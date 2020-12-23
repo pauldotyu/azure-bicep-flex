@@ -1,9 +1,6 @@
-param name string = 'rg-test'
-param location string = 'westus2'
-param tags object = {
-  key1: 'value1'
-  key2: 'value2'
-}
+param name string
+param location string
+param tags object
 
 resource rg 'Microsoft.Resources/resourceGroups@2020-06-01' = {
   location: location
