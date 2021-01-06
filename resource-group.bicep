@@ -9,3 +9,5 @@ resource rg 'Microsoft.Resources/resourceGroups@2020-06-01' = {
 }
 
 output rg_id string = rg.id
+output rg_name string = rg.name
+output rg_location string = rg.location

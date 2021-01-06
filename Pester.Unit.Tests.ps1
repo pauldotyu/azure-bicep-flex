@@ -1,26 +1,66 @@
 Describe "Azure Platform Tests" {
-  Context "Azure Resource Group creation in WestUS2" {
+  Context "Azure Resource Group creation in West US 2" {
     BeforeAll {
-      $rg_template_file="resource-group.json"
-      $rg_location="westus2"
-      $rg_name=(-join((65..90) + (97..122) | Get-Random -Count 12 | % { [CHAR]$_ }) | Out-String).ToLower()
+      $rgTemplateFile=".\resource-group.json"
+      $rgName="rg-pester"
+      $rgLocation="westus2"
+      $rgTemplateParameters = @{
+        name = $rgName
+        location = $rgLocation
+        tags = @{}
+      }
     }
 
     AfterAll {
-      az group delete -n $rg_name -y
+      Get-AzResourceGroup -Name $rgName | Remove-AzResourceGroup -Force
     }
 
     It "Resource Group deployment should succeed" {
-    
-      $output = az deployment sub create --location $rg_location `
-        --template-file $rg_template_file `
-        --parameters name=$rg_name `
-        --parameters location=$rg_location | ConvertFrom-Json
-  
-      $output.properties.ProvisioningState | Should -Be 'Succeeded'
+      $output = New-AzDeployment -WhatIf -Location $rgLocation -TemplateFile $rgTemplateFile -TemplateParameterObject $rgTemplateParameters
+      $output.ProvisioningState | Should -Be 'Succeeded'
+    }
+  }
+
+  Context "Azure Resource Group creation in East US 2" {
+    BeforeAll {
+      $rgTemplateFile=".\resource-group.json"
+      $rgName="rg-pester"
+      $rgLocation="eastus22"
+      $rgTemplateParameters = @{
+        name = $rgName
+        location = $rgLocation
+        tags = @{}
+      }
+    }
+
+    try {
+      $output = New-AzDeployment -WhatIf -Location $rgLocation -TemplateFile $rgTemplateFile -TemplateParameterObject $rgTemplateParameters
+      $msg = $output.ProvisioningState
+    }
+    catch {
+      $ex = $_.Exception | Format-List -Force
+      $msg = $ex.Message
+    }
+
+    It "Resource Group deployment should not succeed" {
+      $msg | Should -Not -Be "Suceeded"
+    }
+  }
+
+  Context "ContextName" {
+    BeforeAll {
+      $rgTemplateFile=".\storage-account.json"
+      $rgName="rg-pester"
+      $rgLocation="eastus22"
+      $rgTemplateParameters = @{
+        name = $rgName
+        location = $rgLocation
+        tags = @{}
+      }
+    }
+
+    It "ItName" {
+      Assertion
     }
   }
 }
-
-
-# Invoke-Pester -Output Detailed
