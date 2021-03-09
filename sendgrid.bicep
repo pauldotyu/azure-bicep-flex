@@ -6,7 +6,7 @@ param acceptMarketingEmails bool = false
 param email string = ''
 param tags object = {}
 
-var name = '${name_prefix}${uniqueString('')}'
+var name = '${name_prefix}${uniqueString(resourceGroup().id)}'
 
 resource sg 'Sendgrid.Email/accounts@2015-01-01' = {
   location: resourceGroup().location
