@@ -1,26 +1,19 @@
-param st_location string
-param st_name_prefix string
-param st_tags object
+param location string
+param name_prefix string
+param allow_blob_public_access bool
+param tags object
 
-var rg_name = 'rg-${st_name_prefix}'
-
-module rg 'resource-group.bicep' = {
-  name: 'moduledeploy'
-  params: {
-    location: st_location
-    name: rg_name
-    tags: st_tags
-  }
-}
-
-var st_name = '${st_name_prefix}${uniqueString(rg.outputs.rg_id)}'
+var name = '${name_prefix}${uniqueString('zzz')}'
 
 resource st 'Microsoft.Storage/storageAccounts@2020-08-01-preview' = {
-  name: st_name
-  location: st_location
+  name: name
+  location: location
   kind: 'StorageV2'
   sku: {
     name: 'Standard_LRS'
   }
-  tags: st_tags
+  tags: tags
+  properties:{
+    allowBlobPublicAccess: allow_blob_public_access
+  }  
 }
